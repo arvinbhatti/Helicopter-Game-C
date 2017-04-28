@@ -25,6 +25,7 @@
 
 #include "tm4c123gh6pm.h"
 
+
 void (*PeriodicTask1)(void);   // user function
 
 // ***************** TIMER1_Init ****************
@@ -52,4 +53,40 @@ void Timer1_Init(void(*task)(void), uint32_t period){
 void Timer1A_Handler(void){
   TIMER1_ICR_R = TIMER_ICR_TATOCINT;// acknowledge TIMER1A timeout
   (*PeriodicTask1)();                // execute user task
+}
+
+unsigned long TimerCount;
+void Timer2_Init(unsigned long period){
+	unsigned long volatile delay;
+	SYSCTL_RCGCTIMER_R |= 0x0004;	//activate timer2
+	delay = SYSCTL_RCGCTIMER_R;	//setting up delay
+	TimerCount = 0;
+	TIMER2_CTL_R = 0x00000000;	//disable timer2 during setup	
+	TIMER2_CFG_R = 0x00000000;	//enable 32-bit timer mode
+	TIMER2_TAMR_R = 0x00000002;	//configure for periodic mode
+	TIMER2_TAILR_R = (period-1);	//subtracting the reload value, check the bus frequency
+	TIMER2_TAPR_R	=	0;	//bus clock resolution
+	TIMER2_ICR_R = 0x00000001;	//clear TIMER2A timeout flag
+	TIMER2_IMR_R |= 0x00000001;	//ar, timeout interrupt
+	NVIC_PRI5_R = (NVIC_PRI5_R&0x00FFFFFF) |0x80000000; //priority 4
+	NVIC_EN0_R = 1<<23;					//enable IRQ 23 in NVIC
+	TIMER2_CTL_R = 0x00000001;	//enable TIMER2A
+}
+
+// trigger is Timer2A Time-Out Interrupt
+// set periodically TATORIS set on rollover
+
+void Timer2A_Handler(void){
+  TIMER2_ICR_R = 0x00000001;  // acknowledge
+  TimerCount++;
+// finish the interrupt handler22
+}
+
+
+void Timer2A_Stop(void){ 
+  TIMER2_CTL_R &= ~0x00000001; // disable interrupt from occuring
+}
+
+void Timer2A_Start(void){ 
+  TIMER2_CTL_R |= 0x00000001;   // enable interrupt from occuring
 }

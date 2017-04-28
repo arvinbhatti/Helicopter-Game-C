@@ -5,3 +5,4 @@
 .\spaceinvaders.o: Random.h
 .\spaceinvaders.o: TExaS.h
 .\spaceinvaders.o: ADC.h
+.\spaceinvaders.o: Timer0.h

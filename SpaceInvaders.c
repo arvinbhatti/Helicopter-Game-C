@@ -10,10 +10,8 @@
 /* This example accompanies the books
    "Embedded Systems: Real Time Interfacing to Arm Cortex M Microcontrollers",
    ISBN: 978-1463590154, Jonathan Valvano, copyright (c) 2014
-
    "Embedded Systems: Introduction to Arm Cortex M Microcontrollers",
    ISBN: 978-1469998749, Jonathan Valvano, copyright (c) 2014
-
  Copyright 2015 by Jonathan W. Valvano, valvano@mail.utexas.edu
     You may use, edit, run or distribute this file
     as long as the above copyright notice remains
@@ -55,10 +53,12 @@
 #include "Random.h"
 #include "TExaS.h"
 #include "ADC.h"
+#include "Timer0.h"
 uint64_t ADCMail;
 uint64_t ADCStatus;
 uint64_t ajkn = 1;
 uint64_t oy = 0;
+void *ptr;
 volatile uint64_t randomx = 0;
 void DisableInterrupts(void); // Disable interrupts
 void EnableInterrupts(void);  // Enable interrupts
@@ -1727,6 +1727,9 @@ uint32_t Convert(uint32_t input){
   return (output);
 }  
 
+void onemake(){
+	ajkn =1;
+}
 void pause(){
 	while ( ((GPIO_PORTE_DATA_R & 0x02)==0)){
 		ST7735_DrawBitmap (0,160, paused, 11, 50);
@@ -1734,18 +1737,20 @@ void pause(){
 	if( ((GPIO_PORTE_DATA_R & 0x02)==2)){
 		while((GPIO_PORTE_DATA_R & 0x02)==2){
 			}
-	ST7735_FillScreen(0xEED3);
+	//ST7735_FillScreen(0xEED3);
   }
 }
 int main(void){
+	ptr = &onemake;
   TExaS_Init();  // set system clock to 80 MHz
   Random_Init(1);
   Output_Init();
 	ADC_Init();
 	SysTick_Init();
+	Timer0A_Init(ptr); 
 	//porte init
 	SYSCTL_RCGCGPIO_R |= 0x10;      //port e
-  volatile uint64_t delay = SYSCTL_RCGCGPIO_R;
+  volatile uint64_t delay = SYSCTL_RCGCGPIO_R;	
   GPIO_PORTE_AMSEL_R &= ~0x13; 
   GPIO_PORTE_PCTL_R &= ~0x00000FFF; 
   GPIO_PORTE_DIR_R &= ~0x13;   
@@ -1757,34 +1762,31 @@ int main(void){
 	uint32_t hychanged = 64;
   uint64_t currentscore = 0;
 	ST7735_FillScreen(0xEED3);
-	while((GPIO_PORTE_DATA_R & 0x02)==0){                            //check is start button was pushed
+	while((GPIO_PORTE_DATA_R & 0x02)==0){                            //check if start button was pushed
 	ST7735_DrawBitmap (0,160, title, 128, 160);
 }
-	while((GPIO_PORTE_DATA_R & 0x02)==2){
+	while((GPIO_PORTE_DATA_R & 0x02)==2){                             //checks if the start button was released
   }
 		ST7735_FillScreen(0xEED3);
 	while(1){
-	
-  
-
-    ST7735_DrawBitmap(hy, hx, helicopter, 16, 31);
+    ST7735_DrawBitmap(hy, hx, helicopter, 16, 31);                //draws helicopter
 		ST7735_DrawBitmap(hy, hx, helicoptera, 16, 31);
 		ST7735_SetCursor(0,0);
-		ST7735_OutString("Score:");
+		ST7735_OutString("Score:");                                   //outputs score
 		LCD_OutDec(currentscore);
 		currentscore++; 
-		if ((GPIO_PORTE_DATA_R & 0x02)==2){
+		if ((GPIO_PORTE_DATA_R & 0x02)==2){                          //checks if the pause button is pressed and released
 			while((GPIO_PORTE_DATA_R & 0x02)==2){
 			}
 			if ((GPIO_PORTE_DATA_R & 0x02)==0){
 				pause();
 			}
 		}
-	  if (ADCStatus == 1){  /////////////// 
+	  if (ADCStatus == 1){  ///////////////                        //used slide pot to move the helicopter up and down
       hychanged = ADCMail;			//read the mailbox
 			ADCStatus = 0;
 			hychanged = Convert(hychanged);
-	}
+	  }
 		if (hychanged > 2500){
 			hy++;
 			if (hy >= 113){
@@ -1797,8 +1799,7 @@ int main(void){
 				hy = -1;
 		 }
 		}
-		
-		if ((GPIO_PORTE_DATA_R & 0x01)==1){
+		if ((GPIO_PORTE_DATA_R & 0x01)==1){                    //checks if move forward button is pressed
 			hx--;
 			if (hx <= 27){
 				hx = 27;
@@ -1810,30 +1811,28 @@ int main(void){
 				hx = 160;
 			}
 		}
-		uint64_t delays = 30000;
+		uint64_t delays = 30000;                              //delay to make movement look nice
 		while (delays > 0){
 			delays--;
 		}
-		uint64_t randomo = (1 + Random()%(2));
-		if (randomo == 1){
-			if (ajkn ==1){
-				randomx = (0 + Random()%(113));
-				ajkn--;
-			}
-		ST7735_DrawBitmap(randomx, oy, rock, 20, 20);
-		uint64_t rhx = (1 + Random()%(4));
-		oy++;
-	}
-	  if (randomo == 2){
-			if (ajkn ==1){
+		if (ajkn == 1){
+			uint64_t randomo = (1 + Random()%(2));                //random number for the obstacles
+			if (randomo == 1){
 			randomx = (0 + Random()%(113));
-		  ajkn--;
-		}
-		ST7735_DrawBitmap(randomx, oy, wall, 20, 71);
-		uint64_t rhx = (1 + Random()%(4));
-		oy++;
+			ST7735_DrawBitmap(randomx, oy, rock, 20, 20);
+			uint64_t rhx = (1 + Random()%(4));
+			 
+			ajkn=0;
+			}
+			if (randomo == 2){
+			randomx = (0 + Random()%(113));
+			ST7735_DrawBitmap(randomx, oy, wall, 20, 71);
+			uint64_t rhx = (1 + Random()%(4));
+			oy++;
+			ajkn=0;
 		}
 	}
+ }
 }
 	
 
@@ -1853,43 +1852,5 @@ void SysTick_Handler (void){
 		ADCMail = ADC_In();
 	  ADCStatus = 1;
 }
-////  ST7735_DrawBitmap(52, 159, PlayerShip0, 18,8); // player ship middle bottom
-////  ST7735_DrawBitmap(53, 151, Bunker0, 18,5);
-
-////  ST7735_DrawBitmap(0, 9, SmallEnemy10pointA, 16,10);
-////  ST7735_DrawBitmap(20,9, SmallEnemy10pointB, 16,10);
-////  ST7735_DrawBitmap(40, 9, SmallEnemy20pointA, 16,10);
-////  ST7735_DrawBitmap(60, 9, SmallEnemy20pointB, 16,10);
-////  ST7735_DrawBitmap(80, 9, SmallEnemy30pointA, 16,10);
-////  ST7735_DrawBitmap(100, 9, SmallEnemy30pointB, 16,10);
 
 
-////  Delay100ms(50);              // delay 5 sec at 80 MHz
-
-
-//  ST7735_FillScreen(0x0000);            // set screen to black
-//  ST7735_SetCursor(1, 1);
-//  ST7735_OutString("GAME OVER");
-//  ST7735_SetCursor(1, 2);
-//  ST7735_OutString("Nice try,");
-//  ST7735_SetCursor(1, 3);
-//  ST7735_OutString("Earthling!");
-//  ST7735_SetCursor(2, 4);
-//  LCD_OutDec(1234);
-//  while(1){
-//  }
-
-//}
-
-
-//// You can use this timer only if you learn how it works
-
-//void Delay100ms(uint32_t count){uint32_t volatile time;
-//  while(count>0){
-//    time = 727240;  // 0.1sec at 80 MHz
-//    while(time){
-//	  	time--;
-//    }
-//    count--;
-//  }
-//}

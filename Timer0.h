@@ -20,7 +20,7 @@
  For more information about my classes, my research, and my books, see
  http://users.ece.utexas.edu/~valvano/
  */
-
+#include <stdint.h>
 #ifndef __TIMER0INTS_H__ // do not include more than once
 #define __TIMER0INTS_H__
 
@@ -29,6 +29,7 @@
 // Inputs:  task is a pointer to a user function
 //          period in units (1/clockfreq)
 // Outputs: none
-void Timer0_Init(void(*task)(void), uint32_t period);
+void Timer0_Init(void(*task)(void)); 
+	uint32_t period;
 
 #endif // __TIMER2INTS_H__

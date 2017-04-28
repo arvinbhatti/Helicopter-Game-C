@@ -22,23 +22,24 @@
  http://users.ece.utexas.edu/~valvano/
  */
 #include <stdint.h>
-
+#include "SpaceInvaders.h"
 #include "tm4c123gh6pm.h"
 
-void (*PeriodicTask0)(void);   // user function
+void (*makeone)(void);   // user function
 
 // ***************** Timer0_Init ****************
 // Activate TIMER0 interrupts to run user task periodically
 // Inputs:  task is a pointer to a user function
 //          period in units (1/clockfreq)
-// Outputs: none
-void Timer0_Init(void(*task)(void), uint32_t period){
+// Outpzzuts: none
+void Timer0A_Init(void(*task)(void), uint32_t period){
   SYSCTL_RCGCTIMER_R |= 0x01;   // 0) activate TIMER0
-  PeriodicTask0 = task;          // user function
+  makeone = task;          // user function
+	period = 70000;
   TIMER0_CTL_R = 0x00000000;    // 1) disable TIMER0A during setup
   TIMER0_CFG_R = 0x00000000;    // 2) configure for 32-bit mode
   TIMER0_TAMR_R = 0x00000002;   // 3) configure for periodic mode, default down-count settings
-  TIMER0_TAILR_R = period-1;    // 4) reload value
+  TIMER0_TAILR_R = 7000000-1;    // 4) reload value
   TIMER0_TAPR_R = 0;            // 5) bus clock resolution
   TIMER0_ICR_R = 0x00000001;    // 6) clear TIMER0A timeout flag
   TIMER0_IMR_R = 0x00000001;    // 7) arm timeout interrupt
@@ -51,5 +52,5 @@ void Timer0_Init(void(*task)(void), uint32_t period){
 
 void Timer0A_Handler(void){
   TIMER0_ICR_R = TIMER_ICR_TATOCINT;// acknowledge TIMER0A timeout
-  (*PeriodicTask0)();                // execute user task
+  (*makeone)();                // execute user task
 }
