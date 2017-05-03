@@ -6,3 +6,6 @@
 .\spaceinvaders.o: TExaS.h
 .\spaceinvaders.o: ADC.h
 .\spaceinvaders.o: Timer0.h
+.\spaceinvaders.o: DAC.h
+.\spaceinvaders.o: Sound.h
+.\spaceinvaders.o: Timer1.h

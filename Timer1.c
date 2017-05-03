@@ -76,11 +76,11 @@ void Timer2_Init(unsigned long period){
 // trigger is Timer2A Time-Out Interrupt
 // set periodically TATORIS set on rollover
 
-void Timer2A_Handler(void){
-  TIMER2_ICR_R = 0x00000001;  // acknowledge
-  TimerCount++;
-// finish the interrupt handler22
-}
+//void Timer2A_Handler(void){
+//  TIMER2_ICR_R = 0x00000001;  // acknowledge
+//  TimerCount++;
+//// finish the interrupt handler22
+//}
 
 
 void Timer2A_Stop(void){ 

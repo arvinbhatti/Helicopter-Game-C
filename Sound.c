@@ -7,6 +7,8 @@
 #include <stdint.h>
 #include "Sound.h"
 #include "DAC.h"
+#include "Timer1.h"
+#include "tm4c123gh6pm.h"
 
 const uint8_t shoot[4080] = {
   129, 99, 103, 164, 214, 129, 31, 105, 204, 118, 55, 92, 140, 225, 152, 61, 84, 154, 184, 101, 
@@ -1136,12 +1138,15 @@ const uint8_t highpitch[1802] = {
   147, 103, 91, 10, 13, 45, 68, 127, 158, 163, 174, 254, 212, 200, 154, 101, 90, 42, 5, 42, 
   67, 119, 148, 166, 164, 238, 223, 202, 174, 112, 96, 78, 0, 34, 54, 99, 143, 160, 166, 183, 
   250, 207};
-
+int a;
+const uint8_t *pt;
+	uint32_t count = 2000;
 void Sound_Init(void){
-// write this
+	DAC_Init();
 };
 void Sound_Play(const uint8_t *pt, uint32_t count){
-// write this
+	DAC_Init();
+	a++;
 };
 void Sound_Shoot(void){
 // write this
@@ -1150,7 +1155,10 @@ void Sound_Killed(void){
 // write this
 };
 void Sound_Explosion(void){
-// write this
+	pt=explosion;
+	count=0;
+	a=explosion[0];
+	
 };
 
 void Sound_Fastinvader1(void){
@@ -1168,3 +1176,11 @@ void Sound_Fastinvader4(void){
 void Sound_Highpitch(void){
 // write this
 };
+void Timer2A_Handler(void){
+	GPIO_PORTF_DATA_R ^= 0x08;
+  TIMER2_ICR_R = 0x00000001;  // acknowledge
+// finish the interrupt handler22
+	for(int i = count; i < 2000; count++){
+		DAC_Out(explosion[i/16]);
+	}
+}

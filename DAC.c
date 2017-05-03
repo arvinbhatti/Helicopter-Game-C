@@ -18,6 +18,7 @@
 // Input: none
 // Output: none
 void DAC_Init(void){
+	GPIO_PORTF_DATA_R ^= 0x04;
 	GPIO_PORTB_AMSEL_R &= ~ 0x3F;
 	GPIO_PORTB_PCTL_R &= ~ 0x3F;
 	GPIO_PORTB_DIR_R |= 0x3F;
